@@ -11,7 +11,7 @@ const handler: Handler = async (event) => {
 };
 
 const fetchCidr = (event) => {
-  const eni = event.detail.attachments[0]
+  const eni = event.detail.attachments.find(attachment => attachment.type === "eni")
   const privateIp = eni.details.find(detail => detail.name === "privateIPv4Address");
   return `${privateIp.value}/32`
 }
