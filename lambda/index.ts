@@ -33,6 +33,7 @@ const formatParams = (event, prefixList) => {
   const params = { PrefixListId: prefixList.id, CurrentVersion: prefixList.version }
   const cidr = fetchCidr(event)
   if (event.detail.lastStatus === "PENDING") {
+    console.log(`Adding cidr ${cidr}, in prefixtList ${prefixList.id}`)
     return (
       {
         ...params,
@@ -43,6 +44,7 @@ const formatParams = (event, prefixList) => {
       }
     )
   } else if (event.detail.lastStatus === "STOPPED") {
+    console.log(`Removing cidr ${cidr}, in prefixtList ${prefixList.id}`)
     return ({
       ...params,
       RemoveEntries: [{ Cidr: cidr }]
