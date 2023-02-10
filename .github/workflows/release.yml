@@ -2,66 +2,51 @@ name: Release
 
 on:
   release:
-    types: [published]
-
-env:
-  UPLOAD_LAMBDA: false
+    types: [prereleased, edited, released]
 
 jobs:
-  test:
-    name: Test lambda function
+  build:
+    name: Build AWS lambda function
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: "main"
 
       - name: Install dependencies
         run: yarn install
 
-      - name: Test
-        run: yarn test
+      - name: Get release tag
+        id: ref
+        run: |
+          TAG=${REF#"$PREFIX"}
+          echo "::set-output name=tag::$TAG"
+        env:
+          REF: ${{ github.ref }}
+          PREFIX: "refs/tags/"
 
-  build-and-upload:
-    name: Build GitHub action and AWS lambda function
-    needs: test
-    if: "false" # To be removed
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: yarn install
+      - name: Update package.json version
+        run: |
+          tmp=$(mktemp)
+          jq '.version = "${{ steps.ref.outputs.tag }}"' package.json > "$tmp"
+          mv "$tmp" package.json
 
       - name: Build lambda distribution
         run: yarn dist
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Upload new build to AWS lambda
+      - name: Setup GitHub git user
         run: |
-          aws lambda update-function-code --function-name "$FUNCTION_ARN" --zip-file "fileb://$(pwd)/out/lambda.zip"
-        env:
-          FUNCTION_ARN: ${{ secrets.LAMBDA_FUNCTION_ARN }}
+          git config user.name github-actions
+          git config user.email github-actions@github.com
 
-  test-new-version:
-    name: Test uploaded lambda
-    needs: build-and-upload
-    if: "false" # To be removed
-    runs-on: ubuntu-latest
+      - name: Push builds
+        run: |
+          git add package.json terraform/lambda.zip
+          git commit -m "Build app for release ${{ steps.ref.outputs.tag }}"
+          git push
 
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Integration tests
-        run: yarn test
-        env:
-          LAMBDA_URL: ${{ secrets.LAMBDA_URL }}
+      - name: Move release tag to latest commit
+        run: |
+          git tag --force "${{ steps.ref.outputs.tag }}" $(git rev-parse HEAD)
+          git push --force --tags

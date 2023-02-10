@@ -1,21 +1,10 @@
-variable "lambda_name" {
-  description = "Lambda function name"
+variable "ecs_cluster_arn" {
+  description = "ECS cluster in which the service to track is running"
   type        = string
 }
 
-variable "timeout" {
-  description = "Lambda timeout"
-  type        = number
-  default     = 3
-}
-
-variable "memory_size" {
-  description = "Lambda memory size"
-  type        = number
-  default     = 128
-}
-
-variable "role_arn" {
-  description = "Lambda IAM role"
+variable "ecs_service" {
+  description = "Name of the ECS service to track"
   type        = string
 }
+
