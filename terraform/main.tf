@@ -1,5 +1,6 @@
 locals {
-  lambda_zip = "${path.module}/lambda.zip"
+  lambda_zip   = "${path.module}/lambda.zip"
+  cluster_name = replace(reverse(split(":", var.ecs_cluster_arn))[0], "/", "-")
 }
 
 resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
@@ -8,8 +9,13 @@ resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
   max_entries    = 1000
 }
 
+resource "aws_cloudwatch_log_group" "log_group" {
+  name              = "/aws/lambda/${aws_lambda_function.lambda.function_name}"
+  retention_in_days = 7
+}
+
 resource "aws_lambda_function" "lambda" {
-  function_name    = "ecs-service-prefix-list-${var.ecs_cluster_arn}-${var.ecs_service}"
+  function_name    = "ecs-service-prefix-list-${local.cluster_name}-${var.ecs_service}"
   filename         = local.lambda_zip
   source_code_hash = filebase64sha256(local.lambda_zip)
   handler          = "index.handler"
@@ -59,9 +65,18 @@ resource "aws_iam_role_policy" "allow_put_events" {
         Action = [
           "ec2:DescribeManagedPrefixLists",
           "ec2:GetManagedPrefixListEntries",
-          "ec2:ModifyManagedPrefixLis"
+          "ec2:ModifyManagedPrefixList"
         ]
         Resource = "*"
+      },
+      {
+        "Effect" = "Allow"
+        "Action" = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource" = "${aws_cloudwatch_log_group.log_group.arn}:*"
       }
     ]
   })
@@ -91,7 +106,7 @@ resource "aws_lambda_permission" "allow_invocation_from_eventbridge" {
 }
 
 resource "aws_cloudwatch_event_rule" "ecs_service_events" {
-  name = "ecs-service-prefix-list-${var.ecs_cluster_arn}-${var.ecs_service}"
+  name = "ecs-service-prefix-list-${local.cluster_name}-${var.ecs_service}"
 
   event_pattern = jsonencode({
     source      = ["aws.ecs"]
