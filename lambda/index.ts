@@ -2,9 +2,9 @@ import { Handler } from "aws-lambda";
 import AWS from "aws-sdk";
 
 const handler: Handler = async (event) => {
-  const ec2 = new AWS.EC2(({ region: process.env.REGION }));
-  const params = formatParams(event)
-  const response = await ec2.modifyManagedPrefixList(params).promise();
+  const prefixList = fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
+  const params = formatParams(event, prefixList)
+  const response = await ec2Client().modifyManagedPrefixList(params).promise();
   if (response.$response.retryCount !== 0) {
     throw new Error(`An error occurred while handling event ${event.id}. Error code: ${response.$response.httpResponse.statusCode}, Error message: ${response.$response.httpResponse.body.toString}`)
   }
@@ -16,8 +16,21 @@ const fetchCidr = (event) => {
   return `${privateIp.value}/32`
 }
 
-const formatParams = (event) => {
-  const params = { PrefixListId: process.env['PREFIX_LIST_ID'] as string }
+const fetchPrefixList = async (prefixListId) => {
+  const result = await ec2Client().describeManagedPrefixLists({ PrefixListIds: [prefixListId], MaxResults: 1 }).promise()
+  const prefixList = result.PrefixLists?.pop()
+  if (prefixList) {
+    return {
+      id: prefixList.PrefixListId,
+      version: prefixList.Version
+    }
+  } else {
+    throw new Error(`An error occurred while handling event. The prefixList ${prefixListId} was not found in region ${process.env.REGION}.`)
+  }
+}
+
+const formatParams = (event, prefixList) => {
+  const params = { PrefixListId: prefixList.id, CurrentVersion: prefixList.version }
   const cidr = fetchCidr(event)
   if (event.detail.lastStatus === "PENDING") {
     return (
@@ -38,6 +51,8 @@ const formatParams = (event) => {
     throw new Error(`An error occurred while forwarding event ${event.id}. The task state ${event.detail.lastStatus} is not recognized by this function.`)
   }
 }
+
+const ec2Client = () => (new AWS.EC2(({ region: process.env.REGION })));
 
 exports.handler = handler;
 
