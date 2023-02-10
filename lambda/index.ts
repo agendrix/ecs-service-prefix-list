@@ -2,7 +2,7 @@ import { Handler } from "aws-lambda";
 import AWS from "aws-sdk";
 
 const handler: Handler = async (event) => {
-  const prefixList = fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
+  const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
   const params = formatParams(event, prefixList)
   const response = await ec2Client().modifyManagedPrefixList(params).promise();
   if (response.$response.retryCount !== 0) {
@@ -17,7 +17,7 @@ const fetchCidr = (event) => {
 }
 
 const fetchPrefixList = async (prefixListId) => {
-  const result = await ec2Client().describeManagedPrefixLists({ PrefixListIds: [prefixListId], MaxResults: 1 }).promise()
+  const result = await ec2Client().describeManagedPrefixLists({ PrefixListIds: [prefixListId] }).promise()
   const prefixList = result.PrefixLists?.pop()
   if (prefixList) {
     return {
