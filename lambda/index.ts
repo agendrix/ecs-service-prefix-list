@@ -4,17 +4,8 @@ import AWS from "aws-sdk";
 const handler: Handler = async (event) => {
   const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
   const params = formatParams(event, prefixList)
-  const response = await ec2Client().modifyManagedPrefixList(params).promise();
-  if (response.$response.retryCount !== 0) {
-    throw new Error(`An error occurred while handling event ${event.id}. Error code: ${response.$response.httpResponse.statusCode}, Error message: ${response.$response.httpResponse.body.toString}`)
-  }
+  modifyPrefixList(params)
 };
-
-const fetchCidr = (event) => {
-  const eni = event.detail.attachments.find(attachment => attachment.type === "eni")
-  const privateIp = eni.details.find(detail => detail.name === "privateIPv4Address");
-  return `${privateIp.value}/32`
-}
 
 const fetchPrefixList = async (prefixListId) => {
   const result = await ec2Client().describeManagedPrefixLists({ PrefixListIds: [prefixListId] }).promise()
@@ -51,6 +42,25 @@ const formatParams = (event, prefixList) => {
     })
   } else {
     throw new Error(`An error occurred while forwarding event ${event.id}. The task state ${event.detail.lastStatus} is not recognized by this function.`)
+  }
+}
+
+const fetchCidr = (event) => {
+  const eni = event.detail.attachments.find(attachment => attachment.type === "eni")
+  const privateIp = eni.details.find(detail => detail.name === "privateIPv4Address");
+  return `${privateIp.value}/32`
+}
+
+const modifyPrefixList = async (params) => {
+  try {
+    await ec2Client().modifyManagedPrefixList(params).promise();
+  } catch (e) {
+    if (e.code === "IncorrectState") {
+      console.log(`Retrying request in 100ms: ${e.message}`)
+      setTimeout(modifyPrefixList, 100, params)
+    } else {
+      throw new Error(`An error occurred while handling event. Error ${JSON.stringify(e)}`)
+    }
   }
 }
 
