@@ -1,12 +1,17 @@
 import { Handler } from "aws-lambda";
-import { setTimeout } from "timers"
 import AWS from "aws-sdk";
+import { ModifyManagedPrefixListRequest } from "aws-sdk/clients/ec2";
 
 const handler: Handler = async (event) => {
-  ensureEventIsValid(event)
-  const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
-  const params = formatParams(event, prefixList)
-  modifyPrefixList(params)
+  try {
+    ensureEventIsValid(event)
+    const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
+    const params = formatParams(event, prefixList)
+    modifyPrefixList(params)
+  } catch (e) {
+    console.log(JSON.stringify(event));
+    throw e
+  }
 };
 
 const ensureEventIsValid = (event) => {
@@ -33,7 +38,7 @@ const formatParams = (event, prefixList) => {
   const params = { PrefixListId: prefixList.id, CurrentVersion: prefixList.version }
   const cidr = fetchCidr(event)
   if (event.detail.lastStatus === "PENDING") {
-    console.log(`Adding cidr ${cidr}, in prefixtList ${prefixList.id}`)
+    console.log(`Adding cidr ${cidr}, in prefixtList ${prefixList.id} of version ${prefixList.version}`)
     return (
       {
         ...params,
@@ -44,7 +49,7 @@ const formatParams = (event, prefixList) => {
       }
     )
   } else if (event.detail.lastStatus === "STOPPED") {
-    console.log(`Removing cidr ${cidr}, in prefixtList ${prefixList.id}`)
+    console.log(`Removing cidr ${cidr}, in prefixtList ${prefixList.id} of version ${prefixList.version}`)
     return ({
       ...params,
       RemoveEntries: [{ Cidr: cidr }]
@@ -60,13 +65,15 @@ const fetchCidr = (event) => {
   return `${privateIp.value}/32`
 }
 
-const modifyPrefixList = async (params, retryCount = 0) => {
+const modifyPrefixList = async (params: ModifyManagedPrefixListRequest, retryCount = 0) => {
   try {
-    await ec2Client().modifyManagedPrefixList(params).promise();
+    const result = await ec2Client().modifyManagedPrefixList(params).promise();
+    result.$response
   } catch (e) {
     const retry = retryTime(retryCount + 1)
-    if (e.code === "IncorrectState" && retry < 60000) {
-      console.log(`Retrying request in ${retry}ms: ${e.message}`)
+    if ((e.code === "IncorrectState" || e.code == "PrefixListVersionMismatch") && retry < 60000) {
+      params.CurrentVersion = (await fetchPrefixList(params.PrefixListId)).version
+      console.log(`Retrying request in ${retry}ms: ${e.message} with version ${params.CurrentVersion}`)
       setTimeout(modifyPrefixList, retry, params, retryCount + 1)
     } else {
       throw new Error(`An error occurred while handling event. Error ${JSON.stringify(e)}`)
