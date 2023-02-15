@@ -7,7 +7,7 @@ const handler: Handler = async (event) => {
     ensureEventIsValid(event)
     const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
     const params = formatParams(event, prefixList)
-    modifyPrefixList(params)
+    await modifyPrefixList(params)
   } catch (e) {
     console.log(JSON.stringify(event));
     throw e
