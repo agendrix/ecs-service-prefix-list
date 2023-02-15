@@ -72,7 +72,7 @@ const modifyPrefixList = async (params: ModifyManagedPrefixListRequest, retryCou
     console.log(`Exiting function, http response: ${result.$response.httpResponse.statusCode}, Prefix list state: ${result.PrefixList?.State}`)
   } catch (e) {
     const retry = retryTime(retryCount + 1)
-    if ((e.code === "IncorrectState" || e.code == "PrefixListVersionMismatch") && retry < 60000) {
+    if (e.code === "IncorrectState" || e.code == "PrefixListVersionMismatch") {
       params.CurrentVersion = (await fetchPrefixList(params.PrefixListId)).version
       console.log(`Retrying request in ${retry}ms: ${e.message} with version ${params.CurrentVersion}`)
       setTimeout(retry, await modifyPrefixList(params, retryCount + 1))
