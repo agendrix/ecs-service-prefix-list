@@ -1,0 +1,110 @@
+{
+    "version": "0",
+    "id": "70697795-3c17-f8b4-f8ac-ca7661904782",
+    "detail-type": "ECS Task State Change",
+    "source": "aws.ecs",
+    "account": "1234567891234",
+    "time": "2023-02-10T16:28:58Z",
+    "region": "ca-central-1",
+    "resources": [
+        "arn:aws:ecs:ca-central-1:1234567891234:task/project/d4b16dcf8d0e47e2ac5cd8330929abd7"
+    ],
+    "detail": {
+        "attachments": [
+            {
+                "id": "33ccf828-2213-48ea-a692-81b48148c906",
+                "type": "eni",
+                "status": "DELETED",
+                "details": [
+                    {
+                        "name": "subnetId",
+                        "value": "subnet-75dbc50e"
+                    },
+                    {
+                        "name": "networkInterfaceId",
+                        "value": "eni-01933841f9f41b6ca"
+                    },
+                    {
+                        "name": "macAddress",
+                        "value": "06:36:11:37:cd:e4"
+                    },
+                    {
+                        "name": "privateDnsName",
+                        "value": "ip-10-0-2-4.ca-central-1.compute.internal"
+                    },
+                    {
+                        "name": "privateIPv4Address",
+                        "value": "10.0.2.4"
+                    }
+                ]
+            },
+            {
+                "id": "934bee5d-5e19-4d08-935c-5676eac28c81",
+                "type": "elb",
+                "status": "DELETED",
+                "details": []
+            }
+        ],
+        "attributes": [
+            {
+                "name": "ecs.cpu-architecture",
+                "value": "x86_64"
+            }
+        ],
+        "availabilityZone": "ca-central-1b",
+        "clusterArn": "arn:aws:ecs:ca-central-1:1234567891234:cluster/project",
+        "connectivity": "CONNECTED",
+        "connectivityAt": "2023-02-10T15:56:30.62Z",
+        "containers": [
+            {
+                "containerArn": "arn:aws:ecs:ca-central-1:1234567891234:container/project/d4b16dcf8d0e47e2ac5cd8330929abd7/febc96eb-a8c3-42c0-b45b-e53c6b8f764f",
+                "exitCode": 143,
+                "lastStatus": "STOPPED",
+                "name": "app",
+                "image": "1234567891234.dkr.ecr.ca-central-1.amazonaws.com/cluster/app:a2f3466",
+                "imageDigest": "sha256:ea7f01cba948acd83e15fe265849e7016434f510dd4f19b8b1fc9858ebee3c36",
+                "runtimeId": "d4b16dcf8d0e47e2ac5cd8330929abd7-527074092",
+                "taskArn": "arn:aws:ecs:ca-central-1:1234567891234:task/project/d4b16dcf8d0e47e2ac5cd8330929abd7",
+                "networkInterfaces": [
+                    {
+                        "attachmentId": "33ccf828-2213-48ea-a692-81b48148c906",
+                        "privateIpv4Address": "10.0.2.4"
+                    }
+                ],
+                "cpu": "0"
+            }
+        ],
+        "cpu": "4096",
+        "createdAt": "2023-02-10T15:56:25.302Z",
+        "desiredStatus": "STOPPED",
+        "enableExecuteCommand": false,
+        "ephemeralStorage": {
+            "sizeInGiB": 20
+        },
+        "executionStoppedAt": "2023-02-10T16:28:35.962Z",
+        "group": "service:app",
+        "launchType": "FARGATE",
+        "lastStatus": "STOPPED",
+        "memory": "8192",
+        "overrides": {
+            "containerOverrides": [
+                {
+                    "name": "app"
+                }
+            ]
+        },
+        "platformVersion": "1.4.0",
+        "pullStartedAt": "2023-02-10T15:56:37.304Z",
+        "pullStoppedAt": "2023-02-10T15:57:13.865Z",
+        "startedAt": "2023-02-10T15:57:36.18Z",
+        "startedBy": "ecs-svc/7704405324594082321",
+        "stoppingAt": "2023-02-10T16:27:20.036Z",
+        "stoppedAt": "2023-02-10T16:28:58.671Z",
+        "stoppedReason": "Scaling activity initiated by (deployment ecs-svc/7704405324594082321)",
+        "stopCode": "ServiceSchedulerInitiated",
+        "taskArn": "arn:aws:ecs:ca-central-1:1234567891234:task/project/d4b16dcf8d0e47e2ac5cd8330929abd7",
+        "taskDefinitionArn": "arn:aws:ecs:ca-central-1:1234567891234:task-definition/project_app:1179",
+        "updatedAt": "2023-02-10T16:28:58.671Z",
+        "version": 8
+    }
+}

@@ -1,11 +1,20 @@
 import { Handler } from "aws-lambda";
+import { setTimeout } from "timers"
 import AWS from "aws-sdk";
 
 const handler: Handler = async (event) => {
+  ensureEventIsValid(event)
   const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
   const params = formatParams(event, prefixList)
   modifyPrefixList(params)
 };
+
+const ensureEventIsValid = (event) => {
+  const isValid = (event.detail.lastStatus && (event.detail.lastStatus == "STOPPED" || event.detail.lastStatus == "PENDING"))
+  if (!isValid) {
+    throw new Error(`Event received with status ${event.detail.lastStatus} is not valid. Expecting STOPPED or PENDING state`);
+  }
+}
 
 const fetchPrefixList = async (prefixListId) => {
   const result = await ec2Client().describeManagedPrefixLists({ PrefixListIds: [prefixListId] }).promise()
@@ -51,17 +60,24 @@ const fetchCidr = (event) => {
   return `${privateIp.value}/32`
 }
 
-const modifyPrefixList = async (params) => {
+const modifyPrefixList = async (params, retryCount = 0) => {
   try {
     await ec2Client().modifyManagedPrefixList(params).promise();
   } catch (e) {
-    if (e.code === "IncorrectState") {
-      console.log(`Retrying request in 100ms: ${e.message}`)
-      setTimeout(modifyPrefixList, 100, params)
+    const retry = retryTime(retryCount + 1)
+    if (e.code === "IncorrectState" && retry < 60000) {
+      console.log(`Retrying request in ${retry}ms: ${e.message}`)
+      setTimeout(modifyPrefixList, retry, params, retryCount + 1)
     } else {
       throw new Error(`An error occurred while handling event. Error ${JSON.stringify(e)}`)
     }
   }
+}
+
+const retryTime = (retryCount): number => {
+  // backoff time strategy of Sidekiq
+  // https://github.com/sidekiq/sidekiq/wiki/Error-Handling#automatic-job-retry
+  return (retryCount ** 4) + 15 + (Math.random() * 10 * (retryCount + 1))
 }
 
 const ec2Client = () => (new AWS.EC2(({ region: process.env.REGION })));
@@ -70,5 +86,9 @@ exports.handler = handler;
 
 export const __test__ = {
   handler,
-  formatParams
+  ensureEventIsValid,
+  formatParams,
+  fetchPrefixList,
+  fetchCidr,
+  modifyPrefixList
 };

@@ -1,0 +1,97 @@
+{
+    "version": "0",
+    "id": "cc12e84d-e894-13da-024d-843a4e674e3e",
+    "detail-type": "ECS Task State Change",
+    "source": "aws.ecs",
+    "account": "1234567891234",
+    "time": "2023-02-07T16:44:36Z",
+    "region": "ca-central-1",
+    "resources": [
+        "arn:aws:ecs:ca-central-1:1234567891234:task/project/25d855faf7284494a5eef1ae702b951f"
+    ],
+    "detail": {
+        "attachments": [
+            {
+                "id": "5105654d-e777-4413-a5df-aea1117476b4",
+                "type": "eni",
+                "status": "ATTACHED",
+                "details": [
+                    {
+                        "name": "subnetId",
+                        "value": "subnet-75dbc50e"
+                    },
+                    {
+                        "name": "networkInterfaceId",
+                        "value": "eni-0e93edb331938b39f"
+                    },
+                    {
+                        "name": "macAddress",
+                        "value": "06:4a:7f:d1:6b:3a"
+                    },
+                    {
+                        "name": "privateDnsName",
+                        "value": "ip-10-0-2-67.ca-central-1.compute.internal"
+                    },
+                    {
+                        "name": "privateIPv4Address",
+                        "value": "10.0.2.67"
+                    }
+                ]
+            },
+            {
+                "id": "c6b1cf8b-f4ea-4e85-9d5f-15ab6ff343c5",
+                "type": "elb",
+                "status": "PRECREATED",
+                "details": []
+            }
+        ],
+        "attributes": [
+            {
+                "name": "ecs.cpu-architecture",
+                "value": "x86_64"
+            }
+        ],
+        "availabilityZone": "ca-central-1b",
+        "clusterArn": "arn:aws:ecs:ca-central-1:1234567891234:cluster/project",
+        "containers": [
+            {
+                "containerArn": "arn:aws:ecs:ca-central-1:1234567891234:container/project/25d855faf7284494a5eef1ae702b951f/4ea9c6fd-ef41-4ddb-a08a-835fe06f3956",
+                "lastStatus": "PENDING",
+                "name": "app",
+                "image": "1234567891234.dkr.ecr.ca-central-1.amazonaws.com/cluster/app:cebf01a",
+                "taskArn": "arn:aws:ecs:ca-central-1:1234567891234:task/project/25d855faf7284494a5eef1ae702b951f",
+                "networkInterfaces": [
+                    {
+                        "attachmentId": "5105654d-e777-4413-a5df-aea1117476b4",
+                        "privateIpv4Address": "10.0.2.67"
+                    }
+                ],
+                "cpu": "0"
+            }
+        ],
+        "cpu": "4096",
+        "createdAt": "2023-02-07T16:44:27.683Z",
+        "desiredStatus": "RUNNING",
+        "enableExecuteCommand": false,
+        "ephemeralStorage": {
+            "sizeInGiB": 20
+        },
+        "group": "service:app",
+        "launchType": "FARGATE",
+        "lastStatus": "PENDING",
+        "memory": "8192",
+        "overrides": {
+            "containerOverrides": [
+                {
+                    "name": "app"
+                }
+            ]
+        },
+        "platformVersion": "1.4.0",
+        "startedBy": "ecs-svc/9039116150428548374",
+        "taskArn": "arn:aws:ecs:ca-central-1:1234567891234:task/project/25d855faf7284494a5eef1ae702b951f",
+        "taskDefinitionArn": "arn:aws:ecs:ca-central-1:1234567891234:task-definition/project_app:1172",
+        "updatedAt": "2023-02-07T16:44:36.494Z",
+        "version": 2
+    }
+}
