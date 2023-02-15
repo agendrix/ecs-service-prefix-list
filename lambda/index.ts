@@ -1,6 +1,7 @@
 import { Handler } from "aws-lambda";
 import AWS from "aws-sdk";
 import { ModifyManagedPrefixListRequest } from "aws-sdk/clients/ec2";
+import { setTimeout } from "timers/promises"
 
 const handler: Handler = async (event) => {
   try {
@@ -68,13 +69,13 @@ const fetchCidr = (event) => {
 const modifyPrefixList = async (params: ModifyManagedPrefixListRequest, retryCount = 0) => {
   try {
     const result = await ec2Client().modifyManagedPrefixList(params).promise();
-    console.log(`Exiting function, http response: ${result.$response.httpResponse.statusCode}, ${result.$response.httpResponse.body}, Prefix list state: ${result.PrefixList?.State}`)
+    console.log(`Exiting function, http response: ${result.$response.httpResponse.statusCode}, Prefix list state: ${result.PrefixList?.State}`)
   } catch (e) {
     const retry = retryTime(retryCount + 1)
     if ((e.code === "IncorrectState" || e.code == "PrefixListVersionMismatch") && retry < 60000) {
       params.CurrentVersion = (await fetchPrefixList(params.PrefixListId)).version
       console.log(`Retrying request in ${retry}ms: ${e.message} with version ${params.CurrentVersion}`)
-      setTimeout(modifyPrefixList, retry, params, retryCount + 1)
+      setTimeout(retry, await modifyPrefixList(params, retryCount + 1))
     } else {
       throw new Error(`An error occurred while handling event. Error ${JSON.stringify(e)}`)
     }

@@ -99,7 +99,25 @@ describe("Lamdba handler", () => {
     const formatParams = __test__.formatParams
     const modifyPrefixList = __test__.modifyPrefixList
     it("must retry if prefixList is locked while currently being modified", async () => {
-      const spy = sinon.spy((_params: ModifyManagedPrefixListRequest, secondCallPromise: Function) => secondCallPromise());
+      const prefixListId = "id"
+      const version = 1
+
+      AWSMock.mock('EC2', 'describeManagedPrefixLists', (_params: DescribePrefixListsRequest, callback: Function) => {
+        callback(null, { PrefixLists: [{ PrefixListId: prefixListId, Version: version }] });
+      })
+
+      const spy = sinon.spy((_params: ModifyManagedPrefixListRequest, secondCallPromise: Function) => secondCallPromise(null,
+        {
+          $response: {
+            httpResponse: {
+              statusCode: 200
+            },
+          },
+          PrefixList: {
+            State: "modifying-in-progress"
+          }
+        }
+      ));
       AWSMock.mock('EC2', 'modifyManagedPrefixList', (_params: ModifyManagedPrefixListRequest, firstCallPromise: Function) => {
         AWSMock.remock('EC2', 'modifyManagedPrefixList', spy)
 
@@ -112,7 +130,7 @@ describe("Lamdba handler", () => {
         } as Error & AWSError, null);
       })
 
-      await modifyPrefixList(formatParams(PendingStateEventMock, { id: "id", version: 1 }));
+      await modifyPrefixList(formatParams(PendingStateEventMock, { id: prefixListId, version: version }));
       await sleep(100)
       assert.strictEqual(spy.calledOnce, true);
     })
