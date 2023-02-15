@@ -127,4 +127,20 @@ resource "aws_cloudwatch_event_target" "ecs_service_events" {
   arn  = aws_lambda_function.lambda.arn
 }
 
+resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
+  alarm_name          = "${title(local.cluster_name)} - ${title(var.ecs_service)} - Prefix List Lambda Errors"
+  namespace           = "AWS/Lambda"
+  metric_name         = "Errors"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  statistic           = "Maximum"
+  period              = 60
+  threshold           = 1
+  datapoints_to_alarm = 1
+  evaluation_periods  = 1
+  treat_missing_data  = "notBreaching"
+  dimensions = {
+    Resource = aws_lambda_function.lambda.function_name
+  }
+}
+
 data "aws_region" "current" {}
