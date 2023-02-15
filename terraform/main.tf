@@ -20,6 +20,7 @@ resource "aws_lambda_function" "lambda" {
   source_code_hash = filebase64sha256(local.lambda_zip)
   handler          = "index.handler"
   role             = aws_iam_role.lambda_execution_role.arn
+  timeout          = "300"
 
   runtime = "nodejs16.x"
 
