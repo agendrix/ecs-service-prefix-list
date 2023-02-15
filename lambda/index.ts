@@ -68,7 +68,7 @@ const fetchCidr = (event) => {
 const modifyPrefixList = async (params: ModifyManagedPrefixListRequest, retryCount = 0) => {
   try {
     const result = await ec2Client().modifyManagedPrefixList(params).promise();
-    result.$response
+    console.log(`Exiting function, http response: ${result.$response.httpResponse}, Prefix list state: ${result.PrefixList?.State}`)
   } catch (e) {
     const retry = retryTime(retryCount + 1)
     if ((e.code === "IncorrectState" || e.code == "PrefixListVersionMismatch") && retry < 60000) {
