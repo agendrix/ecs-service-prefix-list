@@ -2,7 +2,8 @@
 
 _An AWS Lambda for automatically tracking ecs service task ip's in a Prefix list_
 
-![Release](https://github.com/agendrix/ecs-prefix-list/workflows/Release/badge.svg)
+[![Release](https://github.com/agendrix/ecs-service-prefix-list/actions/workflows/release.yml/badge.svg)](https://github.com/agendrix/ecs-service-prefix-list/actions/workflows/release.yml)
+[![Tests](https://github.com/agendrix/ecs-service-prefix-list/actions/workflows/test.yml/badge.svg)](https://github.com/agendrix/ecs-service-prefix-list/actions/workflows/test.yml)
 ## Description
 
 Security groups cannot reference a security group from another region.([doc](https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-security-groups.html)). The goal of this module is to create a [managed AWS Prefix List](https://docs.aws.amazon.com/vpc/latest/userguide/managed-prefix-lists.html) that is automatically populated with the tasks ip adresses of an ECS service. Security groups from another region can reference this list to allow ingress traffic from a specific ECS service. 
