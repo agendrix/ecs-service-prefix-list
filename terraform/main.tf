@@ -135,7 +135,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   statistic           = "Maximum"
   period              = 60
-  threshold           = 1
+  threshold           = 0
   datapoints_to_alarm = 1
   evaluation_periods  = 1
   treat_missing_data  = "notBreaching"
