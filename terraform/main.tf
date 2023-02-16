@@ -1,12 +1,16 @@
 locals {
   lambda_zip   = "${path.module}/lambda.zip"
-  cluster_name = replace(reverse(split(":", var.ecs_cluster_arn))[0], "/", "-")
+  cluster_name = reverse(split("/", reverse(split(":", var.ecs_cluster_arn))[0]))[0]
 }
 
 resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
   name           = "${var.ecs_cluster_arn}-${var.ecs_service}"
   address_family = "IPv4"
   max_entries    = 1000
+
+  lifecycle {
+    ignore_changes = [entry]
+  }
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
