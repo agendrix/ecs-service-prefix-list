@@ -11,6 +11,8 @@ resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
   lifecycle {
     ignore_changes = [entry]
   }
+
+  provider = aws.tracker
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
@@ -30,7 +32,7 @@ resource "aws_lambda_function" "lambda" {
 
   environment {
     variables = {
-      REGION         = data.aws_region.current.name
+      TRACKER_REGION = data.aws_region.tracker.name
       PREFIX_LIST_ID = aws_ec2_managed_prefix_list.ecs_service_prefix_list.id
     }
   }
@@ -42,6 +44,8 @@ resource "aws_lambda_function" "lambda" {
       target_arn = sns_topic_arn.value
     }
   }
+
+  provider = aws.tracked
 }
 
 resource "aws_iam_role" "lambda_execution_role" {
@@ -57,6 +61,8 @@ resource "aws_iam_role" "lambda_execution_role" {
       }
     ]
   })
+
+  provider = aws.tracked
 }
 
 resource "aws_iam_role_policy" "allow_put_events" {
@@ -85,6 +91,8 @@ resource "aws_iam_role_policy" "allow_put_events" {
       }
     ]
   })
+
+  provider = aws.tracked
 }
 
 resource "aws_iam_role_policy" "allow_sns_topic_notification" {
@@ -101,6 +109,8 @@ resource "aws_iam_role_policy" "allow_sns_topic_notification" {
       }
     ]
   })
+
+  provider = aws.tracked
 }
 
 resource "aws_lambda_permission" "allow_invocation_from_eventbridge" {
@@ -108,6 +118,8 @@ resource "aws_lambda_permission" "allow_invocation_from_eventbridge" {
   function_name = aws_lambda_function.lambda.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.ecs_service_events.arn
+
+  provider = aws.tracked
 }
 
 resource "aws_cloudwatch_event_rule" "ecs_service_events" {
@@ -125,6 +137,8 @@ resource "aws_cloudwatch_event_rule" "ecs_service_events" {
       ]
     }
   })
+
+  provider = aws.tracked
 }
 
 resource "aws_cloudwatch_event_target" "ecs_service_events" {
@@ -146,6 +160,14 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   dimensions = {
     Resource = aws_lambda_function.lambda.function_name
   }
+
+  provider = aws.tracked
 }
 
-data "aws_region" "current" {}
+data "aws_region" "tracked" {
+  provider = aws.tracked
+}
+
+data "aws_region" "tracker" {
+  provider = aws.tracker
+}

@@ -88,7 +88,7 @@ const retryTime = (retryCount): number => {
   return (retryCount ** 4) + 15 + (Math.random() * 10 * (retryCount + 1))
 }
 
-const ec2Client = () => (new AWS.EC2(({ region: process.env.REGION })));
+const ec2Client = () => (new AWS.EC2(({ region: process.env.TRACKER_REGION })));
 
 exports.handler = handler;
 

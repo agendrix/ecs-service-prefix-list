@@ -14,4 +14,11 @@ variable "sns_topic_to_notify_on_failure" {
   default     = null
 }
 
-
+variable "mirror_prefix_list" {
+  description = "Prefix list in which to miror every entry change. This is useful for a cross region communication scenario"
+  type = object({
+    id     = string
+    region = string
+  })
+  default = null
+}
