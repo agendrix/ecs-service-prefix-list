@@ -144,6 +144,8 @@ resource "aws_cloudwatch_event_rule" "ecs_service_events" {
 resource "aws_cloudwatch_event_target" "ecs_service_events" {
   rule = aws_cloudwatch_event_rule.ecs_service_events.name
   arn  = aws_lambda_function.lambda.arn
+
+  provider = aws.tracked
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
