@@ -20,5 +20,5 @@ variable "max_entries" {
     When you reference a prefix list in a resource, the maximum number of entries for the prefix lists counts against the quota for the number of entries for the resource."
   desc
   type        = number
-  default     = 24
+  default     = 60 # Default security group ingress rule quota
 }
