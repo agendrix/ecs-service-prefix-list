@@ -6,7 +6,7 @@ locals {
 resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
   name           = "${var.ecs_cluster_arn}-${var.ecs_service}"
   address_family = "IPv4"
-  max_entries    = 1000
+  max_entries    = var.max_entries
 
   lifecycle {
     ignore_changes = [entry]
