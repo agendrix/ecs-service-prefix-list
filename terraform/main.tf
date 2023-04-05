@@ -18,6 +18,8 @@ resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
 resource "aws_cloudwatch_log_group" "log_group" {
   name              = "/aws/lambda/${aws_lambda_function.lambda.function_name}"
   retention_in_days = 7
+
+  provider = aws.tracked
 }
 
 resource "aws_lambda_function" "lambda" {
