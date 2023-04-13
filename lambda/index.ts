@@ -5,7 +5,8 @@ import { setTimeout } from "timers/promises"
 
 const handler: Handler = async (event) => {
   try {
-    ensureEventIsValid(event)
+    if (!eventIsValid(event)) return;
+
     const prefixList = await fetchPrefixList(process.env['PREFIX_LIST_ID'] as string)
     const params = formatParams(event, prefixList)
     await modifyPrefixList(params)
@@ -15,11 +16,19 @@ const handler: Handler = async (event) => {
   }
 };
 
-const ensureEventIsValid = (event) => {
-  const isValid = (event.detail.lastStatus && (event.detail.lastStatus == "STOPPED" || event.detail.lastStatus == "PENDING"))
-  if (!isValid) {
-    throw new Error(`Event received with status ${event.detail.lastStatus} is not valid. Expecting STOPPED or PENDING state`);
+const eventIsValid = (event) => {
+  const eventStatusIsRelevant = (event.detail.lastStatus && (event.detail.lastStatus == "STOPPED" || event.detail.lastStatus == "PENDING"))
+  const eventHasEniAttachment = (event.detail.attachments && event.detail.attachments.find(attachment => attachment.type === "eni")) ? true : false
+  const eventIsValid = eventStatusIsRelevant && eventHasEniAttachment
+  if (!eventIsValid) {
+    console.log(`
+      Event received is not valid. 
+      Either status is invalid or no ENI attachements were present in the event.
+      Please check the event: 
+    ${JSON.stringify(event)}
+  `);
   }
+  return eventIsValid
 }
 
 const fetchPrefixList = async (prefixListId) => {
@@ -94,7 +103,7 @@ exports.handler = handler;
 
 export const __test__ = {
   handler,
-  ensureEventIsValid,
+  eventIsValid,
   formatParams,
   fetchPrefixList,
   fetchCidr,

@@ -17,14 +17,14 @@ describe("Lamdba handler", () => {
     AWSMock.restore("EC2");
   });
 
-  describe("ensureEventIsValid", () => {
-    const ensureEventIsValid = __test__.ensureEventIsValid
-    it("must throw if event is not valid", async () => {
-      assert.throws(() => ensureEventIsValid(InvalidEventMock), Error);
+  describe("eventIsValid", () => {
+    const eventIsValid = __test__.eventIsValid
+    it("must return false if event is not valid", async () => {
+      assert.equal(eventIsValid(InvalidEventMock), false);
     });
 
-    it("must not throw if event is valid", async () => {
-      assert.doesNotThrow(() => ensureEventIsValid(StoppedStateEventMock), Error);
+    it("must return true if event is valid", async () => {
+      assert.equal(eventIsValid(StoppedStateEventMock), true);
     });
   })
 
