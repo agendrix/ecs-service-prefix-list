@@ -47,7 +47,7 @@ const fetchPrefixList = async (prefixListId) => {
 const formatParams = (event, prefixList) => {
   const params = { PrefixListId: prefixList.id, CurrentVersion: prefixList.version }
   const cidr = fetchCidr(event)
-  if (event.detail.lastStatus === "PENDING") {
+  if (event.detail.lastStatus === "PENDING" && event.detail.desiredStatus === "RUNNING") {
     console.log(`Adding cidr ${cidr}, in prefixtList ${prefixList.id} of version ${prefixList.version}`)
     return (
       {
