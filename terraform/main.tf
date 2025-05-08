@@ -1,6 +1,7 @@
 locals {
   lambda_zip   = "${path.module}/lambda.zip"
   cluster_name = reverse(split("/", reverse(split(":", var.ecs_cluster_arn))[0]))[0]
+  region_short = data.aws_region.tracker.name == "eu-west-2" ? "uk" : split("-", data.aws_region.tracker.name)[0]
 }
 
 resource "aws_ec2_managed_prefix_list" "ecs_service_prefix_list" {
@@ -23,7 +24,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 }
 
 resource "aws_lambda_function" "lambda" {
-  function_name    = "ecs-service-prefix-list-${local.cluster_name}-${var.ecs_service}"
+  function_name    = "ecs-service-prefix-list-${local.region_short}-${local.cluster_name}-${var.ecs_service}"
   filename         = local.lambda_zip
   source_code_hash = filebase64sha256(local.lambda_zip)
   handler          = "index.handler"
@@ -125,7 +126,7 @@ resource "aws_lambda_permission" "allow_invocation_from_eventbridge" {
 }
 
 resource "aws_cloudwatch_event_rule" "ecs_service_events" {
-  name = "ecs-service-prefix-list-${local.cluster_name}-${var.ecs_service}"
+  name = "ecs-service-prefix-list-${local.region_short}-${local.cluster_name}-${var.ecs_service}"
 
   event_pattern = jsonencode({
     source      = ["aws.ecs"]
@@ -151,7 +152,7 @@ resource "aws_cloudwatch_event_target" "ecs_service_events" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
-  alarm_name          = "${title(local.cluster_name)} - ${title(var.ecs_service)} - Prefix List Lambda Errors"
+  alarm_name          = "${title(local.region_short)} - ${title(local.cluster_name)} - ${title(var.ecs_service)} - Prefix List Lambda Errors"
   namespace           = "AWS/Lambda"
   metric_name         = "Errors"
   comparison_operator = "GreaterThanOrEqualToThreshold"
