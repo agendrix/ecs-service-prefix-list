@@ -1,6 +1,6 @@
 {
   "name": "ecs-service-prefix-list",
-  "version": "v1.2.4",
+  "version": "v1.3",
   "author": "Louis Boudreau <l.boudreau@agendrix.com>",
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.spec.ts",
